@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>NoisyCricket</title>
+    <link href="https://fonts.googleapis.com/css?family=Shadows+Into+Light" rel="stylesheet">
+    <style>
+        html,
+        body {
+            margin: 5px;
+            padding: 5px;
+            font-family: 'Shadows Into Light', cursive;
+            font-size: calc(14px + (72 - 28) * ((100vw - 300px) / (1600 - 300)));
+        }
+
+        h1,
+        #analyser,
+        #isdevteamtooloud,
+        #geekvals {
+            font-family: 'Shadows Into Light', cursive;
+            overflow: hidden;
+        }
+
+        #recentbadness {
+            color: red;
+        }
+
+        .slidecontainer {
+            width: 100%;
+            /* Width of the outside container */
+        }
+
+        /* The slider itself */
+        .slider {
+            -webkit-appearance: none;
+            /* Override default CSS styles */
+            appearance: none;
+            width: 100%;
+            /* Full-width */
+            height: 25px;
+            /* Specified height */
+            background: #d3d3d3;
+            /* Grey background */
+            outline: none;
+            /* Remove outline */
+            opacity: 0.7;
+            /* Set transparency (for mouse-over effects on hover) */
+            -webkit-transition: .2s;
+            /* 0.2 seconds transition on hover */
+            transition: opacity .2s;
+        }
+
+        /* Mouse-over effects */
+        .slider:hover {
+            opacity: 1;
+            /* Fully shown on mouse-over */
+        }
+
+        /* The slider handle (use -webkit- (Chrome, Opera, Safari, Edge) and -moz- (Firefox) to override default look) */
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            /* Override default look */
+            appearance: none;
+            width: 25px;
+            /* Set a specific slider handle width */
+            height: 25px;
+            /* Slider handle height */
+            background: #4CAF50;
+            /* Green background */
+            cursor: pointer;
+            /* Cursor on hover */
+        }
+
+        .slider::-moz-range-thumb {
+            width: 25px;
+            /* Set a specific slider handle width */
+            height: 25px;
+            /* Slider handle height */
+            background: #4CAF50;
+            /* Green background */
+            cursor: pointer;
+            /* Cursor on hover */
+        }
+    </style>
+</head>
+
+<body>
+    <div><strong>IS THE TEAM TOO LOUD?!?</strong></div>
+    <div><strong id="isdevteamtooloud">no...</strong></div>
+    <div id="analyser">...</div>
+    <div id="geekvals">...</div>
+    <div id="recentbadness"></div>
+    <hr>
+    <strong>Set sensitivity:</strong><span id="sensitivityval"></span>
+    <div class="slidecontainer">
+        <input type="range" min="190" max="255" value="215" class="slider" id="sensitivity">
+    </div>
+    <sub>Made with hacks and love because we know we can be noisy crickets
+        sometimes. See red? Let us know. We probably
+        are lost in code brain.</sub>
+    <script>
+        /* Original Code Courtesy of Jake Albaugh:
+         https://twitter.com/jake_albaugh/status/1118611365508337665 
+         
+         modified with love and thanks
+         */
+        const millisDevsBeenLoud = 0;
+        var maxLoudness = 215; // see note below
+        var slider = document.getElementById("sensitivity");
+        var output = document.getElementById("sensitivityval");
+        output.innerHTML = slider.value;
+
+        slider.oninput = function () {
+            output.innerHTML = this.value;
+            maxLoudness = this.value;
+        }
+        const bars = ["▁", "▂", "▃", "▄", "▅", "▆", "▇", "█"];
+        var AudioContext = window.AudioContext || window.webkitAudioContext; // cross browser
+        const uIntArray = new Uint8Array(16);
+        const ctx = new AudioContext();
+        const analyser = ctx.createAnalyser();
+        analyser.fftSize = 32;
+        analyser.minDecibels = -90;
+        analyser.maxDecibels = -10;
+        navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+            ctx.createMediaStreamSource(stream).connect(analyser);
+            updateUrl();
+            ctx.resume();
+        });
+        var millisecondsStart = Date.now();// now.getMilliseconds();
+        var millisecondsEnd = 0; //now.getMilliseconds();
+        var tooloud = "no...";
+        var peakfreak = null;
+        var set = false;
+
+        function updateUrl() {
+            setTimeout(updateUrl, 40);
+            analyser.getByteFrequencyData(uIntArray);
+            const eq = [];
+            uIntArray.forEach(v => {
+                eq.push(bars[Math.floor((v / 255) * 8)]);
+            });
+            tooloud = "no...";
+            peakfreak = Math.max.apply(null, uIntArray);
+
+            if (peakfreak > maxLoudness) {
+                // after testing in my own house, 
+                // with a whopping sample size of one
+                // I set this to what it is. 255 is max. 
+                //  good enough for now
+                tooloud = "YES! Noisy Crickets!";
+                if (!set) {
+                    millisecondsStart = Date.now();
+                    set = true;
+                }
+                delta = Date.now() - millisecondsStart;
+            } else {
+                delta = Date.now() - millisecondsStart;
+                if (set) {
+                    millisecondsStart = Date.now();
+                    set = false;
+                    document.getElementById('recentbadness').innerHTML = "Noisy team: " + delta + " milliseconds!";
+                }
+            }
+            document.getElementById('analyser').innerHTML = document.title = eq.join("");
+            document.getElementById('geekvals').innerHTML = uIntArray.toString();
+            document.getElementById('isdevteamtooloud').innerHTML = tooloud + " for " + delta + " milliseconds!";
+        }
+            // Update the current slider value (each time you drag the slider handle)
+        /*document.getElementById('sensitivity').onchange = function () {
+            maxLoudness = this.value;
+            document.getElementById('sensitivityval').innerHTML = this.value;
+        }
+        document.getElementById('sensitivityval').innerHTML = document.getElementById('sensitivity').value;*/
+            // 90 db is max exposure for 8 hrs, 120 is pain
+            // but trying to find accurate values is hard and im just 
+            // sitting here on my couch listening to my wife play
+            // ark with our nephew on the xbox. They're like 600 real km
+            // apart but like they are in the same room. remote aunt and 
+            // unclin'
+    </script>
+</body>
+
+</html>
