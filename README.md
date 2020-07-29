@@ -1,5 +1,7 @@
 # NoisyCricket.
 
+[https://mightyweasel.github.io/NoisyCricket/](https://mightyweasel.github.io/NoisyCricket/)
+
 Part of digital change in the workplace means putting developers and non-developers together. Gone is
 the pit. Or maybe more people have joined it. One way or another we have to accept that developer culture
 is not everyone's culture.
